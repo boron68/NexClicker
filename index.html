@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гра з кліками</title>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            background: url('space.gif') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .auth-container, .settings-container {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+            text-align: center;
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .auth-container h2, .settings-container h2 {
+            margin-bottom: 15px;
+            font-size: 24px;
+            text-transform: uppercase;
+        }
+
+        input {
+            width: 90%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            outline: none;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: #00bfff;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .auth-container button, .settings-container button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: 2px solid white;
+            border-radius: 8px;
+            font-size: 16px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            transition: 0.3s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-container button:hover, .settings-container button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #00bfff;
+            transform: scale(1.05);
+        }
+
+        .auth-container button:active, .settings-container button:active {
+            transform: scale(0.95);
+        }
+        .phone-container {
+            width: 300px;
+            height: 600px;
+            background-color: rgba(0, 191, 255, 0.8);
+            border: 10px solid black;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            display: none;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .clicks-count {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .image-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        img {
+            max-width: 80%;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+
+        .settings-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .settings-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .settings-menu {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .settings-menu button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 2px solid white;
+            border-radius: 8px;
+            font-size: 14px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+        }
+
+        .settings-menu button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Кнопки авторизації */
+        .auth-container button {
+            background-color: #0066cc;
+            border: 2px solid #005bb5;
+            transition: 0.3s;
+        }
+
+        .auth-container button:hover {
+            background-color: #005bb5;
+            border: 2px solid #004d99;
+        }
+
+        .auth-container button:active {
+            background-color: #004d99;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Авторизація</h2>
+        <input type="text" id="username" placeholder="Нік">
+        <input type="password" id="password" placeholder="Пароль">
+        <button onclick="register()">Реєстрація</button>
+        <button onclick="login()">Увійти</button>
+    </div>
+
+    <div class="phone-container" id="gameContainer">
+        <div class="clicks-count" id="clicksCount">Кліки: 0</div>
+        <div class="image-container">
+            <img src="img/champie_super_brawl_pin.png" id="champieImage" alt="Champie Pin">
+        </div>
+        
+        <img src="settings.png" class="settings-icon" onclick="toggleSettings()">
+
+        <div class="settings-menu" id="settingsMenu">
+            <button onclick="toggleMusic()">Музика</button>
+            <button onclick="logout()">Вийти</button>
+        </div>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="military_lase_tag_ingame_01.ogg" type="audio/ogg">
+    </audio>
+    <audio id="clickSound">
+        <source src="click.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        let user = null;
+        let lastClickTime = 0;
+        let musicPlaying = false;
+
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('users')) || {};
+        }
+
+        function register() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            let users = getUsers();
+
+            if (!username || !password) return alert('Введіть нік та пароль!');
+            if (users[username]) return alert('Користувач вже існує!');
+
+            users[username] = { password, clicks: 0 };
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('Реєстрація успішна!');
+        }
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            let users = getUsers();
+
+            if (!users[username] || users[username].password !== password) {
+                return alert('Невірний нік або пароль!');
+            }
+
+            user = { name: username, clicks: users[username].clicks };
+            document.getElementById('clicksCount').textContent = `Кліки: ${user.clicks}`;
+            document.querySelector('.auth-container').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'flex';
+        }
+
+        function logout() {
+            user = null;
+            document.querySelector('.auth-container').style.display = 'flex';
+            document.getElementById('gameContainer').style.display = 'none';
+        }
+
+        function toggleSettings() {
+            let menu = document.getElementById('settingsMenu');
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function toggleMusic() {
+            let music = document.getElementById('bgMusic');
+            if (musicPlaying) {
+                music.pause();
+            } else {
+                music.play();
+            }
+            musicPlaying = !musicPlaying;
+        }
+
+        document.getElementById('champieImage').addEventListener('click', () => {
+            if (!user) return alert('Спочатку увійдіть!');
+            document.getElementById('clickSound').play();
+            user.clicks++;
+            document.getElementById('clicksCount').textContent = `Кліки: ${user.clicks}`;
+            let users = getUsers();
+            users[user.name].clicks = user.clicks;
+            localStorage.setItem('users', JSON.stringify(users));
+        });
+    </script>
+</body>
+</html>
