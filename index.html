@@ -10,10 +10,9 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.9); }
         }
 
         body {
@@ -29,7 +28,7 @@
             background-size: cover;
         }
 
-        .auth-container, .settings-container {
+        .auth-container, .settings-container, .starDropScene {
             background: rgba(0, 0, 0, 0.6);
             padding: 20px;
             border-radius: 15px;
@@ -70,10 +69,10 @@
             width: 100%;
             padding: 12px;
             margin-top: 10px;
-            border: 2px solid white;
+            border: 2px solid #00bfff; /* Синій колір кнопок */
             border-radius: 8px;
             font-size: 16px;
-            background: transparent;
+            background: #00bfff; /* Синій колір кнопок */
             color: white;
             cursor: pointer;
             transition: 0.3s ease-in-out;
@@ -82,7 +81,7 @@
         }
 
         .auth-container button:hover, .settings-container button:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 191, 255, 0.7); /* Світліший відтінок синього при наведенні */
             border-color: #00bfff;
             transform: scale(1.05);
         }
@@ -90,6 +89,7 @@
         .auth-container button:active, .settings-container button:active {
             transform: scale(0.95);
         }
+
         .phone-container {
             width: 300px;
             height: 600px;
@@ -166,25 +166,51 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
-        /* Кнопки авторизації */
-        .auth-container button {
-            background-color: #0066cc;
-            border: 2px solid #005bb5;
-            transition: 0.3s;
+        #bottomLeftImage {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 80px;
+            height: auto;
         }
 
-        .auth-container button:hover {
-            background-color: #005bb5;
-            border: 2px solid #004d99;
+        .starDropScene {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #00bfff; /* Блакитний фон сцени StarDrop */
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+            margin: auto;
+            animation: fadeIn 1s ease-in-out;
         }
 
-        .auth-container button:active {
-            background-color: #004d99;
+        .starDropScene img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 50%;
+            height: auto;
+            opacity: 1;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .fadeInImage {
+            animation: fadeIn 1s forwards;
+        }
+
+        .fadeOutImage {
+            animation: fadeOut 1s forwards;
         }
     </style>
 </head>
 <body>
-    <div class="auth-container">
+    <div class="auth-container" id="authContainer">
         <h2>Авторизація</h2>
         <input type="text" id="username" placeholder="Нік">
         <input type="password" id="password" placeholder="Пароль">
@@ -197,13 +223,19 @@
         <div class="image-container">
             <img src="img/champie_super_brawl_pin.png" id="champieImage" alt="Champie Pin">
         </div>
-        
+
         <img src="settings.png" class="settings-icon" onclick="toggleSettings()">
+        
+        <img src="img/image71.png" id="bottomLeftImage" alt="Image71" onclick="showStarDropScene()">
 
         <div class="settings-menu" id="settingsMenu">
             <button onclick="toggleMusic()">Музика</button>
             <button onclick="logout()">Вийти</button>
         </div>
+    </div>
+
+    <div class="starDropScene" id="starDropScene">
+        <img src="img/image71.png" id="starDropImage" alt="Image71" onclick="changeImage()">
     </div>
 
     <audio id="bgMusic" loop>
@@ -215,22 +247,16 @@
 
     <script>
         let user = null;
-        let lastClickTime = 0;
-        let musicPlaying = false;
-
-        function getUsers() {
-            return JSON.parse(localStorage.getItem('users')) || {};
-        }
+        let users = JSON.parse(localStorage.getItem('users')) || {};
 
         function register() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            let users = getUsers();
 
             if (!username || !password) return alert('Введіть нік та пароль!');
             if (users[username]) return alert('Користувач вже існує!');
 
-            users[username] = { password, clicks: 0 };
+            users[username] = password;
             localStorage.setItem('users', JSON.stringify(users));
             alert('Реєстрація успішна!');
         }
@@ -238,48 +264,70 @@
         function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            let users = getUsers();
 
-            if (!users[username] || users[username].password !== password) {
-                return alert('Невірний нік або пароль!');
-            }
+            if (!username || !password) return alert('Введіть нік та пароль!');
+            if (!users[username] || users[username] !== password) return alert('Невірний нік або пароль!');
 
-            user = { name: username, clicks: users[username].clicks };
-            document.getElementById('clicksCount').textContent = `Кліки: ${user.clicks}`;
-            document.querySelector('.auth-container').style.display = 'none';
+            user = username;
+            document.getElementById('authContainer').style.display = 'none';
             document.getElementById('gameContainer').style.display = 'flex';
+            startGame();
+        }
+
+        function startGame() {
+            let clicks = 0;
+
+            document.getElementById('champieImage').onclick = () => {
+                clicks++;
+                document.getElementById('clicksCount').textContent = `Кліки: ${clicks}`;
+                document.getElementById('clickSound').play();
+            };
+        }
+
+        function toggleSettings() {
+            const settingsMenu = document.getElementById('settingsMenu');
+            settingsMenu.style.display = settingsMenu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function toggleMusic() {
+            const bgMusic = document.getElementById('bgMusic');
+            if (bgMusic.paused) {
+                bgMusic.play();
+            } else {
+                bgMusic.pause();
+            }
         }
 
         function logout() {
             user = null;
-            document.querySelector('.auth-container').style.display = 'flex';
+            document.getElementById('authContainer').style.display = 'flex';
             document.getElementById('gameContainer').style.display = 'none';
+            document.getElementById('settingsMenu').style.display = 'none';
         }
 
-        function toggleSettings() {
-            let menu = document.getElementById('settingsMenu');
-            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        function showStarDropScene() {
+            // Спочатку встановлюємо зображення image71.png при кожному переході до сцени
+            const starDropImage = document.getElementById('starDropImage');
+            starDropImage.src = 'img/image71.png'; // Встановлюємо image71.png
+
+            // Потім показуємо сцену StarDrop
+            document.getElementById('starDropScene').style.display = 'flex';
         }
 
-        function toggleMusic() {
-            let music = document.getElementById('bgMusic');
-            if (musicPlaying) {
-                music.pause();
-            } else {
-                music.play();
-            }
-            musicPlaying = !musicPlaying;
-        }
+        function changeImage() {
+            const starDropImage = document.getElementById('starDropImage');
+            starDropImage.style.opacity = 0;  // Почати зміну зображення, плавно приховуючи
 
-        document.getElementById('champieImage').addEventListener('click', () => {
-            if (!user) return alert('Спочатку увійдіть!');
-            document.getElementById('clickSound').play();
-            user.clicks++;
-            document.getElementById('clicksCount').textContent = `Кліки: ${user.clicks}`;
-            let users = getUsers();
-            users[user.name].clicks = user.clicks;
-            localStorage.setItem('users', JSON.stringify(users));
-        });
+            setTimeout(() => {
+                starDropImage.src = 'img/champie_darksands_pin.png'; // Змінюємо зображення
+                starDropImage.style.opacity = 1;  // Плавно показуємо нове зображення
+                setTimeout(() => {
+                    // Повертаємо до меню
+                    document.getElementById('starDropScene').style.display = 'none';
+                    document.getElementById('gameContainer').style.display = 'flex';
+                }, 1700); // Затримка для плавного переходу
+            }, 1000);  // Затримка на час анімації
+        }
     </script>
 </body>
 </html>
